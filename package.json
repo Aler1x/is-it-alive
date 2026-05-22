@@ -1,6 +1,6 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "is-it-alive-",
+  "name": "is-it-alive",
   "description": "Shows info from status page based on provided links",
   "license": "MIT",
   "scripts": {
@@ -21,7 +21,6 @@
     "@types/react": "19.0.10",
     "eslint": "^9.22.0",
     "prettier": "^3.5.3",
-    "react-devtools": "6.1.1",
     "typescript": "^5.8.2"
   },
   "icon": "extension-icon.png",
@@ -29,12 +28,12 @@
     {
       "mode": "view",
       "name": "alive",
-      "title": "alive",
-      "description": "shows info list",
-      "subtitle": ""
+      "title": "Is It Alive?",
+      "description": "Monitor status pages and check if services are operational",
+      "subtitle": "Status Pages"
     }
   ],
-  "title": "Is it alive?",
+  "title": "Is It Alive?",
   "author": "alerix",
   "platforms": [
     "macOS"

@@ -1,43 +1,164 @@
-import { useState } from "react";
-import { ActionPanel, Action, Icon, Grid, Color } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Color,
+  Icon,
+  List,
+  showToast,
+  Toast,
+} from "@raycast/api";
+import { useCachedPromise } from "@raycast/utils";
+import { fetchAllSnapshots } from "@/adapters";
+import { SiteDetail } from "@/components/site-detail";
+import { SiteForm } from "@/components/site-form";
+import { useSites } from "@/hooks/use-sites";
+import { indicatorListIcon } from "@/lib/status-colors";
+import type { MonitoredSite, StatusSnapshot } from "@/types";
 
 export default function Command() {
-  const [columns, setColumns] = useState(3);
-  const [isLoading, setIsLoading] = useState(true);
-  return (
-    <Grid
-      columns={columns}
-      inset={Grid.Inset.Large}
-      isLoading={isLoading}
-      searchBarAccessory={
-        <Grid.Dropdown
-          tooltip="Grid Item Size"
-          storeValue
-          onChange={(newValue) => {
-            setColumns(parseInt(newValue));
-            setIsLoading(false);
-          }}
-        >
-          <Grid.Dropdown.Item title="Large" value={"3"} />
-          <Grid.Dropdown.Item title="Medium" value={"5"} />
-          <Grid.Dropdown.Item title="Small" value={"8"} />
-        </Grid.Dropdown>
+  const {
+    sites,
+    isLoading: isLoadingSites,
+    addSite,
+    deleteSite,
+    updateSite,
+  } = useSites();
+
+  const {
+    data: snapshots,
+    isLoading: isLoadingSnapshots,
+    revalidate,
+  } = useCachedPromise(
+    async (siteList: MonitoredSite[]) => {
+      if (siteList.length === 0) {
+        return {} as Record<string, StatusSnapshot>;
       }
+      return fetchAllSnapshots(siteList);
+    },
+    [sites],
+    { keepPreviousData: true },
+  );
+
+  const isLoading = isLoadingSites || isLoadingSnapshots;
+
+  async function handleDelete(site: MonitoredSite) {
+    await deleteSite(site.id);
+    await showToast({ style: Toast.Style.Success, title: "Site removed" });
+  }
+
+  return (
+    <List
+      isLoading={isLoading}
+      searchBarPlaceholder="Search monitored sites..."
     >
-      {!isLoading &&
-        Object.entries(Icon).map(([name, icon]) => (
-          <Grid.Item
-            key={name}
-            content={{ value: { source: icon, tintColor: Color.PrimaryText }, tooltip: name }}
-            title={name}
-            subtitle={icon}
+      <List.EmptyView
+        title="No sites yet"
+        description="Add a status page URL to monitor services like Claude, GitHub, or Railway."
+        actions={
+          <ActionPanel>
+            <Action.Push
+              title="Add Site"
+              icon={Icon.Plus}
+              target={
+                <SiteForm
+                  onSave={async (values) => {
+                    await addSite(values);
+                  }}
+                />
+              }
+            />
+          </ActionPanel>
+        }
+      />
+
+      {sites.map((site) => {
+        const snapshot = snapshots?.[site.id];
+        const hasError = Boolean(snapshot?.error);
+        const icon = hasError
+          ? { source: Icon.QuestionMark, tintColor: Color.SecondaryText }
+          : indicatorListIcon(snapshot?.indicator ?? "unknown");
+
+        const subtitle = snapshot?.error
+          ? "Failed to fetch — retry"
+          : (snapshot?.overallDescription ?? "Loading...");
+
+        return (
+          <List.Item
+            key={site.id}
+            title={site.name}
+            subtitle={subtitle}
+            icon={icon}
+            accessories={[
+              ...(snapshot?.incidents?.length
+                ? [
+                    {
+                      icon: Icon.Warning,
+                      tooltip: `${snapshot.incidents.length} active incident(s)`,
+                    },
+                  ]
+                : []),
+              ...(snapshot?.fetchedAt
+                ? [
+                    {
+                      date: new Date(snapshot.fetchedAt),
+                      tooltip: "Last fetched",
+                    },
+                  ]
+                : []),
+            ]}
             actions={
               <ActionPanel>
-                <Action.CopyToClipboard content={icon} />
+                {snapshot && !hasError ? (
+                  <Action.Push
+                    title="View Status Details"
+                    icon={Icon.Eye}
+                    target={<SiteDetail snapshot={snapshot} />}
+                  />
+                ) : (
+                  <Action
+                    title="Refresh"
+                    icon={Icon.ArrowClockwise}
+                    onAction={revalidate}
+                  />
+                )}
+                <Action.Push
+                  title="Add Site"
+                  icon={Icon.Plus}
+                  target={
+                    <SiteForm
+                      onSave={async (values) => {
+                        await addSite(values);
+                      }}
+                    />
+                  }
+                />
+                <Action.Push
+                  title="Edit Site"
+                  icon={Icon.Pencil}
+                  target={
+                    <SiteForm
+                      site={site}
+                      onSave={(values) => updateSite(site.id, values)}
+                    />
+                  }
+                />
+                <Action
+                  title="Delete Site"
+                  shortcut={{ modifiers: ["ctrl"], key: "delete" }}
+                  icon={Icon.Trash}
+                  style={Action.Style.Destructive}
+                  onAction={() => handleDelete(site)}
+                />
+                <Action
+                  title="Refresh All"
+                  icon={Icon.ArrowClockwise}
+                  onAction={revalidate}
+                />
               </ActionPanel>
             }
           />
-        ))}
-    </Grid>
+        );
+      })}
+    </List>
   );
 }
