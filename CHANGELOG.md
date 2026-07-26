@@ -1,6 +1,19 @@
 # Is It Alive? Changelog
 
-## [AWS Region Filtering] - {PR_MERGE_DATE}
+## [Statuspage Uptime Accuracy] - {PR_MERGE_DATE}
+
+- Fix Statuspage 90-day uptime drift (e.g. claude.ai showing ~59% vs the site's ~99.4%) by using Statuspage's embedded per-second outage data instead of counting any incident day as full downtime
+
+## [Restore Site Creation Fix] - 2026-07-21
+
+- Restore adding sites in Raycast runtimes where the Web Crypto global is unavailable
+
+## [Google Cloud and Google AI Studio Support] - 2026-07-12
+
+- Add support for the Google Cloud Service Health dashboard (status.cloud.google.com), including per-product monitoring via `/products/{name}` URLs (e.g. vertex-gemini-api)
+- Add support for the Google AI Studio status page (aistudio.google.com/status) covering the Gemini API, Gemini Live API, and AI Studio
+
+## [AWS Region Filtering] - 2026-07-10
 
 - Filter AWS Health incidents and components by monitored regions when adding or editing a site
 - Show region filter metadata in the site detail view
