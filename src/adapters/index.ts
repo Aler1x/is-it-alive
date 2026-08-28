@@ -126,7 +126,7 @@ export async function detectProvider(siteUrl: string): Promise<SiteProvider> {
   }
 
   throw new Error(
-    "Unsupported status page. Try OutageDeck, OnlineOrNot, FireHydrant, Statuspage, Better Stack, incident.io, Instatus, Checkly, an RSS status feed, or status.railway.app",
+    "This URL does not match a supported status page or RSS feed.",
   );
 }
 

@@ -266,8 +266,10 @@ export interface SuggestedSiteSection {
 export function unusedSuggestedSites(
   monitoredUrls: readonly string[],
 ): SuggestedSite[] {
-  const added = new Set(monitoredUrls.map(comparableUrl));
-  return SUGGESTED_SITES.filter((site) => !added.has(comparableUrl(site.url)));
+  const monitoredUrlKeys = new Set(monitoredUrls.map(siteUrlKey));
+  return SUGGESTED_SITES.filter(
+    (site) => !monitoredUrlKeys.has(siteUrlKey(site.url)),
+  );
 }
 
 export function unusedSuggestedSitesBySection(
@@ -318,7 +320,7 @@ export function suggestedFaviconSource(site: SuggestedSite): string {
   return `https://www.google.com/s2/favicons?sz=64&domain_url=${encodeURIComponent(favicon)}`;
 }
 
-function comparableUrl(url: string): string {
+function siteUrlKey(url: string): string {
   try {
     return normalizeSiteUrl(url);
   } catch {

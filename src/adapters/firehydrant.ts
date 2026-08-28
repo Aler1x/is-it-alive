@@ -146,7 +146,7 @@ function mapIncident(incident: FireHydrantIncident): StatusIncident {
   };
 }
 
-function liveComponentConditions(
+function activeIncidentComponentConditions(
   incidents: FireHydrantIncident[],
 ): Map<string, string> {
   const byId = new Map<string, string>();
@@ -183,12 +183,13 @@ export const firehydrantAdapter: StatusAdapter = {
       }
 
       const activeIncidents = (data.incidents ?? []).filter(isActiveIncident);
-      const liveConditions = liveComponentConditions(activeIncidents);
+      const activeIncidentConditions =
+        activeIncidentComponentConditions(activeIncidents);
       const components = (data.components ?? []).map((component) => ({
         id: component.id,
         name: component.name,
         status: conditionToComponentStatus(
-          liveConditions.get(component.id),
+          activeIncidentConditions.get(component.id),
           data.conditions,
         ),
       }));

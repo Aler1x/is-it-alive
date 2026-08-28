@@ -52,13 +52,13 @@ The extension auto-detects the provider when you add a URL. Detection order: **R
 | **Uptime.com**    | [status.uptime.com](https://status.uptime.com), [uptime.com/statuspage/hackerrank](https://uptime.com/statuspage/hackerrank) | React props payload in page HTML |
 | **RSS fallback**  | [status.x.ai](https://status.x.ai)                             | `/feed.xml` (and common feed paths)   |
 
-incident.io is checked before Statuspage because some Statuspage hosts expose proxy-style URLs that look similar but lack incident.io-only endpoints like `component_impacts`. If the page URL redirects (for example `status.linear.app` → `linearstatus.com`), the adapter follows that redirect and then reads the proxy JSON API on the canonical host.
+incident.io is checked before Statuspage because some Statuspage hosts expose similar proxy URLs without incident.io endpoints such as `component_impacts`. For redirected pages such as `status.linear.app`, the adapter follows the redirect to `linearstatus.com` and reads the proxy JSON API there.
 
 Instatus must also be checked before Statuspage: Instatus pages serve a Statuspage-compatible `/api/v2/summary.json` shim, so the Statuspage detector matches them even though the payload lacks Statuspage-only fields.
 
-OnlineOrNot is checked after Statuspage. Hosted pages use `{subdomain}.onlineornot.com`. Custom domains such as [status.openrouter.ai](https://status.openrouter.ai) are looked up with the same public summary API, using the hostname as the path key (`/v1/status_pages/status.openrouter.ai/summary`).
+OnlineOrNot is checked after Statuspage. Hosted pages use `{subdomain}.onlineornot.com`. For custom domains such as [status.openrouter.ai](https://status.openrouter.ai), the adapter passes the hostname to the public summary API at `/v1/status_pages/status.openrouter.ai/summary`.
 
-FireHydrant (Nunc) status pages expose current status as `/data/payload.json` on the page origin. The adapter is checked after OnlineOrNot and before Checkly so detection stays on JSON routes.
+FireHydrant status pages expose current status at `/data/payload.json` on the page origin. The adapter runs before Checkly, which must download and parse the full HTML page.
 
 Checkly has no public JSON API for status pages, so its adapter parses the Nuxt (`__NUXT_DATA__`) payload embedded in the page HTML. It is checked late because its detection requires downloading the full page.
 

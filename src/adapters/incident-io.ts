@@ -34,7 +34,7 @@ async function discardBody(response: Response): Promise<void> {
   try {
     await response.body?.cancel();
   } catch {
-    // Tests and some runtimes expose a body that cannot be cancelled.
+    // Some test and runtime response bodies do not support cancellation.
   }
 }
 

@@ -1,12 +1,12 @@
 # Is It Alive? Changelog
 
-## [OnlineOrNot and Suggested Catalog] - {PR_MERGE_DATE}
+## [Suggested Sites, OnlineOrNot, and FireHydrant] - {PR_MERGE_DATE}
 
-- Add OnlineOrNot status pages (hosted `*.onlineornot.com` and custom domains such as status.openrouter.ai) via the public summary API, including hostname lookup for custom domains
+- Add OnlineOrNot status pages through the public summary API. Look up hosted pages by subdomain and custom domains such as status.openrouter.ai by hostname
 - Add FireHydrant status pages (e.g. status.redis.io) via `/data/payload.json`
 - Follow incident.io status-page redirects so URLs like status.linear.app resolve to the canonical proxy JSON API
-- Expand suggested sites with Developer Tools, Data, and Auth & Payments sections, plus additional infrastructure and AI pages
-- Keep the site list under Raycast's memory limit by fetching a few pages at a time and storing compact snapshots; full history loads in the detail view
+- Add Developer Tools, Data, and Auth & Payments sections to the suggested sites list, along with more infrastructure and AI status pages
+- Fetch two status pages at a time and store compact list snapshots to stay under Raycast's memory limit. Fetch full history only in the detail view
 
 ## [OutageDeck Support] - 2026-08-21
 

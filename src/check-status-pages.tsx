@@ -173,9 +173,9 @@ export default function Command() {
       : indicatorListIcon(snapshot?.indicator ?? "unknown");
 
     const subtitle = hasSnapshotError
-      ? "Failed to fetch — retry"
+      ? "Fetch failed. Press Enter to retry."
       : hasLoadError
-        ? "Failed to load — retry"
+        ? "Load failed. Press Enter to retry."
         : (snapshot?.overallDescription ?? "Loading...");
 
     return (
@@ -189,7 +189,7 @@ export default function Command() {
             ? [
                 {
                   icon: Icon.Warning,
-                  tooltip: `${snapshot.incidents.length} active incident(s)`,
+                  tooltip: `${snapshot.incidents.length} active incident${snapshot.incidents.length === 1 ? "" : "s"}`,
                 },
               ]
             : []),
@@ -261,7 +261,7 @@ export default function Command() {
         }
         description={
           showSuggestions
-            ? "Clear search to see popular status pages, or add a custom URL."
+            ? "Clear the search to browse suggested status pages, or add a custom URL."
             : "Add a status page URL to monitor services like Claude, GitHub, or Railway."
         }
         actions={
@@ -297,7 +297,7 @@ export default function Command() {
             >
               {section.sites.map((site) => {
                 const isSelected = selectedSet.has(site.url);
-                const isAddingThis = addingUrls.includes(site.url);
+                const isAddingSite = addingUrls.includes(site.url);
 
                 return (
                   <List.Item
@@ -317,7 +317,7 @@ export default function Command() {
                           : Icon.Circle,
                         tooltip: isSelected ? "Selected" : "Not selected",
                       },
-                      ...(isAddingThis ? [{ text: "Adding..." }] : []),
+                      ...(isAddingSite ? [{ text: "Adding..." }] : []),
                     ]}
                     actions={
                       <ActionPanel>

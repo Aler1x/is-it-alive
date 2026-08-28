@@ -66,7 +66,7 @@ describe("onlineornotAdapter", () => {
     ).resolves.toBe(false);
   });
 
-  it("detects custom domains via the public summary API hostname lookup", async () => {
+  it("looks up custom domains by hostname with the public summary API", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("/status_pages/status.openrouter.ai/summary")) {

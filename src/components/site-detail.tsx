@@ -81,7 +81,7 @@ export function SiteDetail({ site }: SiteDetailProps) {
     return (
       <List isLoading={isLoading} navigationTitle={site.name}>
         <List.EmptyView
-          title={error ? "Failed to load status" : "Loading status…"}
+          title={error ? "Failed to load status" : "Loading status..."}
           description={
             error instanceof Error ? error.message : "Fetching the status page."
           }

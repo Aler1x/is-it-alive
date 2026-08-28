@@ -41,8 +41,8 @@ function hostedSubdomain(siteUrl: string): string | null {
   return subdomain;
 }
 
-function summaryUrl(subdomain: string): string {
-  return `${API_ORIGIN}/v1/status_pages/${encodeURIComponent(subdomain)}/summary`;
+function summaryUrl(lookupKey: string): string {
+  return `${API_ORIGIN}/v1/status_pages/${encodeURIComponent(lookupKey)}/summary`;
 }
 
 function isOnlineOrNotSummary(data: unknown): data is OnlineOrNotSummary {
