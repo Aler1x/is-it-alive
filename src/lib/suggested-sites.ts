@@ -34,7 +34,7 @@ export const SUGGESTED_SITES: readonly SuggestedSite[] = [
   },
   {
     name: "Cloudflare",
-    url: "https://new.cloudflarestatus.com/api/v2/summary.json",
+    url: "https://www.cloudflarestatus.com",
     favicon: "https://www.cloudflare.com",
   },
   {
