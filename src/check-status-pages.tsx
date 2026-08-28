@@ -11,6 +11,7 @@ import {
 import { useCachedPromise } from "@raycast/utils";
 import { useState } from "react";
 import { detectProvider, fetchAllSnapshots, fetchSnapshot } from "@/adapters";
+import { mapPool } from "@/lib/async-pool";
 import { SiteDetail } from "@/components/site-detail";
 import { SiteForm } from "@/components/site-form";
 import { useSites, type SiteInput } from "@/hooks/use-sites";
@@ -105,17 +106,21 @@ export default function Command() {
     setAddingUrls(sitesToAdd.map((site) => site.url));
 
     try {
-      const results = await Promise.allSettled(
-        sitesToAdd.map(resolveSuggestedSite),
-      );
+      const results = await mapPool(sitesToAdd, 2, async (site) => {
+        try {
+          return { ok: true as const, value: await resolveSuggestedSite(site) };
+        } catch {
+          return { ok: false as const, name: site.name };
+        }
+      });
       const succeeded: SiteInput[] = [];
       const failed: string[] = [];
 
-      for (const [index, result] of results.entries()) {
-        if (result.status === "fulfilled") {
+      for (const result of results) {
+        if (result.ok) {
           succeeded.push(result.value);
         } else {
-          failed.push(sitesToAdd[index].name);
+          failed.push(result.name);
         }
       }
 
@@ -203,7 +208,7 @@ export default function Command() {
               <Action.Push
                 title="View Status Details"
                 icon={Icon.Eye}
-                target={<SiteDetail snapshot={snapshot} />}
+                target={<SiteDetail site={site} />}
               />
             ) : (
               <Action

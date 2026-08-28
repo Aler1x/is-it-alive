@@ -1,6 +1,11 @@
 import { normalizeSiteUrl } from "@/lib/url";
 
-export type SuggestedSiteCategory = "infrastructure" | "ai";
+export type SuggestedSiteCategory =
+  | "infrastructure"
+  | "developer-tools"
+  | "data"
+  | "auth-payments"
+  | "ai";
 
 export interface SuggestedSite {
   name: string;
@@ -40,6 +45,90 @@ const INFRASTRUCTURE_SITES: readonly Omit<SuggestedSite, "category">[] = [
     url: "https://www.cloudflarestatus.com",
     favicon: "https://www.cloudflare.com",
   },
+  {
+    name: "DigitalOcean",
+    url: "https://status.digitalocean.com",
+    favicon: "https://www.digitalocean.com",
+  },
+  {
+    name: "Netlify",
+    url: "https://www.netlifystatus.com",
+    favicon: "https://www.netlify.com",
+  },
+  {
+    name: "Render",
+    url: "https://status.render.com",
+    favicon: "https://render.com",
+  },
+  {
+    name: "Fly.io",
+    url: "https://status.fly.io",
+    favicon: "https://fly.io",
+  },
+];
+
+const DEVELOPER_TOOL_SITES: readonly Omit<SuggestedSite, "category">[] = [
+  {
+    name: "npm",
+    url: "https://status.npmjs.org",
+    favicon: "https://www.npmjs.com",
+  },
+  {
+    name: "Docker",
+    url: "https://www.dockerstatus.com",
+    favicon: "https://www.docker.com",
+  },
+  {
+    name: "CircleCI",
+    url: "https://status.circleci.com",
+    favicon: "https://circleci.com",
+  },
+  {
+    name: "Cursor",
+    url: "https://status.cursor.com",
+    favicon: "https://cursor.com",
+  },
+  {
+    name: "Linear",
+    url: "https://linearstatus.com",
+    favicon: "https://linear.app",
+  },
+];
+
+const DATA_SITES: readonly Omit<SuggestedSite, "category">[] = [
+  {
+    name: "Supabase",
+    url: "https://status.supabase.com",
+    favicon: "https://supabase.com",
+  },
+  {
+    name: "MongoDB",
+    url: "https://status.mongodb.com",
+    favicon: "https://www.mongodb.com",
+  },
+  {
+    name: "PlanetScale",
+    url: "https://www.planetscalestatus.com",
+    favicon: "https://planetscale.com",
+  },
+  {
+    name: "Redis",
+    url: "https://status.redis.io",
+    favicon: "https://redis.io",
+  },
+];
+
+const AUTH_PAYMENT_SITES: readonly Omit<SuggestedSite, "category">[] = [
+  {
+    name: "Clerk",
+    url: "https://status.clerk.com",
+    favicon: "https://clerk.com",
+  },
+  {
+    name: "Shopify",
+    url: "https://www.shopifystatus.com",
+    favicon: "https://www.shopify.com",
+  },
 ];
 
 const AI_SITES: readonly Omit<SuggestedSite, "category">[] = [
@@ -62,6 +151,11 @@ const AI_SITES: readonly Omit<SuggestedSite, "category">[] = [
     name: "xAI",
     url: "https://status.x.ai",
     favicon: "https://x.ai",
+  },
+  {
+    name: "Perplexity",
+    url: "https://status.perplexity.com",
+    favicon: "https://www.perplexity.ai",
   },
   {
     name: "DeepSeek",
@@ -149,12 +243,18 @@ function withCategory(
 
 export const SUGGESTED_SITES: readonly SuggestedSite[] = [
   ...withCategory("infrastructure", INFRASTRUCTURE_SITES),
+  ...withCategory("developer-tools", DEVELOPER_TOOL_SITES),
+  ...withCategory("data", DATA_SITES),
+  ...withCategory("auth-payments", AUTH_PAYMENT_SITES),
   ...withCategory("ai", AI_SITES),
 ];
 
 const SECTION_TITLES: Record<SuggestedSiteCategory, string> = {
   infrastructure: "Infrastructure",
   ai: "AI",
+  "developer-tools": "Developer Tools",
+  data: "Data",
+  "auth-payments": "Auth & Payments",
 };
 
 export interface SuggestedSiteSection {
@@ -176,12 +276,18 @@ export function unusedSuggestedSitesBySection(
   const unused = unusedSuggestedSites(monitoredUrls);
   const grouped: Record<SuggestedSiteCategory, SuggestedSite[]> = {
     infrastructure: [],
+    "developer-tools": [],
+    data: [],
+    "auth-payments": [],
     ai: [],
   };
 
   for (const site of unused) {
     switch (site.category) {
       case "infrastructure":
+      case "developer-tools":
+      case "data":
+      case "auth-payments":
       case "ai":
         grouped[site.category].push(site);
         break;
