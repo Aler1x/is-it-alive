@@ -1,12 +1,15 @@
 import { normalizeSiteUrl } from "@/lib/url";
 
+export type SuggestedSiteCategory = "infrastructure" | "ai";
+
 export interface SuggestedSite {
   name: string;
   url: string;
   favicon?: string;
+  category: SuggestedSiteCategory;
 }
 
-export const SUGGESTED_SITES: readonly SuggestedSite[] = [
+const INFRASTRUCTURE_SITES: readonly Omit<SuggestedSite, "category">[] = [
   {
     name: "GitHub",
     url: "https://www.githubstatus.com",
@@ -37,6 +40,9 @@ export const SUGGESTED_SITES: readonly SuggestedSite[] = [
     url: "https://www.cloudflarestatus.com",
     favicon: "https://www.cloudflare.com",
   },
+];
+
+const AI_SITES: readonly Omit<SuggestedSite, "category">[] = [
   {
     name: "OpenAI",
     url: "https://status.openai.com",
@@ -134,6 +140,67 @@ export const SUGGESTED_SITES: readonly SuggestedSite[] = [
   },
 ];
 
+function withCategory(
+  category: SuggestedSiteCategory,
+  sites: readonly Omit<SuggestedSite, "category">[],
+): SuggestedSite[] {
+  return sites.map((site) => ({ ...site, category }));
+}
+
+export const SUGGESTED_SITES: readonly SuggestedSite[] = [
+  ...withCategory("infrastructure", INFRASTRUCTURE_SITES),
+  ...withCategory("ai", AI_SITES),
+];
+
+const SECTION_TITLES: Record<SuggestedSiteCategory, string> = {
+  infrastructure: "Infrastructure",
+  ai: "AI",
+};
+
+export interface SuggestedSiteSection {
+  category: SuggestedSiteCategory;
+  title: string;
+  sites: SuggestedSite[];
+}
+
+export function unusedSuggestedSites(
+  monitoredUrls: readonly string[],
+): SuggestedSite[] {
+  const added = new Set(monitoredUrls.map(comparableUrl));
+  return SUGGESTED_SITES.filter((site) => !added.has(comparableUrl(site.url)));
+}
+
+export function unusedSuggestedSitesBySection(
+  monitoredUrls: readonly string[],
+): SuggestedSiteSection[] {
+  const unused = unusedSuggestedSites(monitoredUrls);
+  const grouped: Record<SuggestedSiteCategory, SuggestedSite[]> = {
+    infrastructure: [],
+    ai: [],
+  };
+
+  for (const site of unused) {
+    switch (site.category) {
+      case "infrastructure":
+      case "ai":
+        grouped[site.category].push(site);
+        break;
+      default: {
+        const _exhaustive: never = site.category;
+        throw new Error(`Unhandled suggested site category: ${_exhaustive}`);
+      }
+    }
+  }
+
+  return (Object.keys(SECTION_TITLES) as SuggestedSiteCategory[])
+    .map((category) => ({
+      category,
+      title: SECTION_TITLES[category],
+      sites: grouped[category],
+    }))
+    .filter((section) => section.sites.length > 0);
+}
+
 const DIRECT_IMAGE_PATTERN = /\.(png|ico|svg|jpe?g|webp)(\?|$)/i;
 
 export function suggestedFaviconSource(site: SuggestedSite): string {
@@ -151,11 +218,4 @@ function comparableUrl(url: string): string {
   } catch {
     return url;
   }
-}
-
-export function unusedSuggestedSites(
-  monitoredUrls: readonly string[],
-): SuggestedSite[] {
-  const added = new Set(monitoredUrls.map(comparableUrl));
-  return SUGGESTED_SITES.filter((site) => !added.has(comparableUrl(site.url)));
 }

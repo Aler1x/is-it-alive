@@ -17,7 +17,7 @@ import { useSites, type SiteInput } from "@/hooks/use-sites";
 import { indicatorListIcon } from "@/lib/status-colors";
 import {
   suggestedFaviconSource,
-  unusedSuggestedSites,
+  unusedSuggestedSitesBySection,
   type SuggestedSite,
 } from "@/lib/suggested-sites";
 import { normalizeSiteUrl } from "@/lib/url";
@@ -51,7 +51,10 @@ export default function Command() {
     { keepPreviousData: true },
   );
 
-  const suggestedSites = unusedSuggestedSites(sites.map((site) => site.url));
+  const suggestedSections = unusedSuggestedSitesBySection(
+    sites.map((site) => site.url),
+  );
+  const suggestedSites = suggestedSections.flatMap((section) => section.sites);
   const selectedSet = new Set(
     selectedUrls.filter((url) =>
       suggestedSites.some((site) => site.url === url),
@@ -78,6 +81,16 @@ export default function Command() {
 
   function selectAllSuggested() {
     setSelectedUrls(suggestedSites.map((site) => site.url));
+  }
+
+  function selectAllInSection(sectionSites: SuggestedSite[]) {
+    setSelectedUrls((current) => {
+      const next = new Set(current);
+      for (const site of sectionSites) {
+        next.add(site.url);
+      }
+      return [...next];
+    });
   }
 
   function clearSelection() {
@@ -259,87 +272,104 @@ export default function Command() {
         monitoredItems
       )}
 
-      {showSuggestions && (
-        <List.Section
-          title="Suggested"
-          subtitle={
-            selectedSites.length > 0
-              ? `${selectedSites.length} selected · ⌘↵ to add`
-              : "Enter to select · ⌘↵ to add"
-          }
-        >
-          {suggestedSites.map((site) => {
-            const isSelected = selectedSet.has(site.url);
-            const isAddingThis = addingUrls.includes(site.url);
+      {showSuggestions &&
+        suggestedSections.map((section, index) => {
+          const selectedInSection = section.sites.filter((site) =>
+            selectedSet.has(site.url),
+          ).length;
 
-            return (
-              <List.Item
-                key={site.url}
-                title={site.name}
-                subtitle={site.url}
-                icon={{
-                  source: suggestedFaviconSource(site),
-                  fallback: Icon.Globe,
-                  mask: Image.Mask.Circle,
-                }}
-                keywords={[site.url, new URL(site.url).hostname]}
-                accessories={[
-                  {
-                    icon: isSelected
-                      ? { source: Icon.CheckCircle, tintColor: Color.Green }
-                      : Icon.Circle,
-                    tooltip: isSelected ? "Selected" : "Not selected",
-                  },
-                  ...(isAddingThis ? [{ text: "Adding..." }] : []),
-                ]}
-                actions={
-                  <ActionPanel>
-                    <ActionPanel.Section>
-                      <Action
-                        title={isSelected ? "Deselect" : "Select"}
-                        icon={isSelected ? Icon.Circle : Icon.CheckCircle}
-                        onAction={() => toggleSelected(site.url)}
-                      />
-                      <Action
-                        title={
-                          selectedSites.length > 0
-                            ? `Add ${selectedSites.length} Site${selectedSites.length === 1 ? "" : "s"}`
-                            : "Add Site"
-                        }
-                        icon={Icon.Plus}
-                        shortcut={{ modifiers: ["cmd"], key: "return" }}
-                        onAction={() =>
-                          handleAddSuggested(
-                            selectedSites.length > 0 ? selectedSites : [site],
-                          )
-                        }
-                      />
-                    </ActionPanel.Section>
-                    <ActionPanel.Section>
-                      <Action
-                        title="Select All"
-                        icon={Icon.CheckList}
-                        onAction={selectAllSuggested}
-                      />
-                      {selectedSites.length > 0 && (
-                        <Action
-                          title="Clear Selection"
-                          icon={Icon.XMarkCircle}
-                          onAction={clearSelection}
-                        />
-                      )}
-                      <AddSiteAction
-                        title="Add Custom URL"
-                        onSave={handleSaveNewSite}
-                      />
-                    </ActionPanel.Section>
-                  </ActionPanel>
-                }
-              />
-            );
-          })}
-        </List.Section>
-      )}
+          return (
+            <List.Section
+              key={section.category}
+              title={section.title}
+              subtitle={
+                selectedInSection > 0
+                  ? `${selectedInSection} selected · ⌘↵ to add`
+                  : index === 0
+                    ? "Enter to select · ⌘↵ to add"
+                    : undefined
+              }
+            >
+              {section.sites.map((site) => {
+                const isSelected = selectedSet.has(site.url);
+                const isAddingThis = addingUrls.includes(site.url);
+
+                return (
+                  <List.Item
+                    key={site.url}
+                    title={site.name}
+                    subtitle={site.url}
+                    icon={{
+                      source: suggestedFaviconSource(site),
+                      fallback: Icon.Globe,
+                      mask: Image.Mask.Circle,
+                    }}
+                    keywords={[site.url, new URL(site.url).hostname]}
+                    accessories={[
+                      {
+                        icon: isSelected
+                          ? { source: Icon.CheckCircle, tintColor: Color.Green }
+                          : Icon.Circle,
+                        tooltip: isSelected ? "Selected" : "Not selected",
+                      },
+                      ...(isAddingThis ? [{ text: "Adding..." }] : []),
+                    ]}
+                    actions={
+                      <ActionPanel>
+                        <ActionPanel.Section>
+                          <Action
+                            title={isSelected ? "Deselect" : "Select"}
+                            icon={isSelected ? Icon.Circle : Icon.CheckCircle}
+                            onAction={() => toggleSelected(site.url)}
+                          />
+                          <Action
+                            title={
+                              selectedSites.length > 0
+                                ? `Add ${selectedSites.length} Site${selectedSites.length === 1 ? "" : "s"}`
+                                : "Add Site"
+                            }
+                            icon={Icon.Plus}
+                            shortcut={{ modifiers: ["cmd"], key: "return" }}
+                            onAction={() =>
+                              handleAddSuggested(
+                                selectedSites.length > 0
+                                  ? selectedSites
+                                  : [site],
+                              )
+                            }
+                          />
+                        </ActionPanel.Section>
+                        <ActionPanel.Section>
+                          <Action
+                            title={`Select All ${section.title}`}
+                            icon={Icon.CheckList}
+                            onAction={() => selectAllInSection(section.sites)}
+                          />
+                          <Action
+                            title="Select All"
+                            icon={Icon.CheckList}
+                            onAction={selectAllSuggested}
+                          />
+                          {selectedSites.length > 0 && (
+                            <Action
+                              title="Clear Selection"
+                              icon={Icon.XMarkCircle}
+                              onAction={clearSelection}
+                            />
+                          )}
+                          <AddSiteAction
+                            title="Add Custom URL"
+                            onSave={handleSaveNewSite}
+                          />
+                        </ActionPanel.Section>
+                      </ActionPanel>
+                    }
+                  />
+                );
+              })}
+            </List.Section>
+          );
+        })}
     </List>
   );
 }
